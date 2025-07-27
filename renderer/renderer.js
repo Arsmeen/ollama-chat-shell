@@ -607,11 +607,12 @@ function add(txt='',cls='system'){
     d.innerHTML=txt;
     enhanceCodeBlocks(d);
     attachBookmark(d); // вызов attachBookmark
-  }
-  if(cls==='user') {
+  } else if(cls==='user') {
     d.textContent=txt
     hideUserCode(d);
     renderEmoji(d);
+  } else {
+    d.innerHTML=txt;
   }
   chat.appendChild(d);
   chat.scrollTop=chat.scrollHeight;
@@ -803,6 +804,7 @@ checkB.onclick=()=>{ add('⏳ Checking Ollama…'); window.api.check(); };
 window.api.onError(e=>add('⚠️ '+e));
 // Показываем "not running, waiting..." и начинаем проверку
 window.api.onOff(() => {
+  console.log('offline');
   add('⚠️ Ollama not running, waiting...');
   if (!ollamaWaitTimer) {
     ollamaWaitTimer = setInterval(() => {

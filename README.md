@@ -5,6 +5,10 @@ This is a simple chat shell UI for convenient communication with Ollama models, 
 
 The project was originally created for the *gemma3:12b* model, but you can use any model supported by Ollama and your hardware.
 
+It stores chat history into the chat_history/ChatHistory.json.gz, and monitors the history file size according to the config option history_max_file_kb, creating additional archive files if necessary.
+
+Since gemma3:12b only sees images during initialization, and cannot do so in the chat, I implemented it so that if an image is attached to a message, such a message reinitializes the model so that it can see it. But it does not see the history of messages before this request, it is important to remember this. For testing, I added the image_include_messages option - it forcibly includes the specified number of chat threads in the message, but all attempts except 0 more often caused hallucinations in the model. The next message after this one with an image will already include the entire history up to the history_max_chars limit normally.
+
 ## Quick Features
 
 - Clean chat interface for text conversations with Ollama models  
