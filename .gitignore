@@ -1,0 +1,17 @@
+node_modules/
+dist/
+build/
+out/
+ExterrnalConfig/
+chat_history/
+*.log
+*.tmp
+*.cache
+.DS_Store
+.env
+package-lock.json
+README_full.md
+*.sqlite
+*.db
+*.rar
+tokens/

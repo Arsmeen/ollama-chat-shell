@@ -1,0 +1,35 @@
+{
+  "model": "gemma3:12b",
+  "generate_with_images": true,
+  "image_pre_message": "*There is a picture attached to the last message, be sure to look at it*",
+  "image_include_messages": 0,
+  "temperature": 0.7,
+  "system_prompt": "You are a friendly conversationalist, ready to support any topic, and speak Russian.",
+  "start_prompt": "Hello! How are you?",
+  "history_max_file_kb": 1500,
+  "history_max_chars": 300000,
+  "history_dir": "./chat_history",
+  "history_max_messages": 30,
+  "chat_font": "0.8rem",
+  "input_font": "0.8rem",
+  "tts": {
+    "use": "",
+    "volume": 100,
+    "OpenAI": {
+		"model": "gpt-4o-mini-tts",
+		"token": "<openai_key>",
+		"voice": "shimmer",
+		"chunk": 100,
+		"volume": 100,
+		"speed ": 1.2
+    },
+    "ElevenLabs": {
+		"token": "<elevenlabs_key>",
+		"voice": "ycbyWsnf4hqZgdpKHqiU",
+		"model": "eleven_flash_v2_5",
+		"chunk": 100,
+		"volume": 50,
+		"speed ": 1.2
+    }
+  }
+}

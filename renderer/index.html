@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" /><title>SoulChat</title>
+
+<meta http-equiv="Content-Security-Policy"
+      content="
+        default-src 'self' blob:;
+        img-src     'self' data: https://cdn.jsdelivr.net;
+        style-src   'self' 'unsafe-inline';
+        connect-src 'self' https://api.openai.com https://api.elevenlabs.io
+                    https://speech.googleapis.com https://www.google.com https://www.gstatic.com;
+        media-src   'self' blob:;">
+
+
+<script defer src="twemoji.min.js"></script>
+
+<style>
+:root{ --chat-font:0.7rem; --input-font:0.7rem; }
+body{margin:0;font-family:Arial,Helvetica,sans-serif,"Segoe UI Emoji","Apple Color Emoji","Noto Color Emoji";
+     display:flex;flex-direction:column;height:100vh;}
+body * {font-family:Arial,Helvetica,sans-serif,"Segoe UI Emoji","Apple Color Emoji","Noto Color Emoji"}
+
+#chat{
+  flex:1;overflow-y:auto;padding:8px;display:flex;flex-direction:column;gap:6px;
+  font-size:var(--chat-font);
+  position:relative;
+}
+#file-bar{
+  display:none; max-height:48px; overflow-x:auto;
+  padding:4px 8px; gap:4px; border-top:1px solid #ddd; border-bottom:1px solid #ddd;
+  display:flex; align-items:center; background:#fafafa;
+}
+.file-item{
+  background:#ffd856;border:1px solid #c2e1ff;border-radius:4px;
+  padding:2px 6px; display:flex; align-items:center; gap:6px; font-size:0.65rem;
+}
+.file-item button{border:none;background:transparent;cursor:pointer;font-size:0.8rem;}
+
+.msg{white-space:pre-wrap;border-radius:6px;padding:6px 8px;max-width:90%;}
+.system{background:#f2f2f2;color:#555;align-self:center;}
+.user  {background:#fff;color:#000;align-self:flex-end;border:1px solid #dcdcdc;}
+.assistant{background:#e8f4ff;color:#034c7c;align-self:flex-start;border:1px solid #c2e1ff;}
+
+/* — закладки и панель навигации — */
+.bookmark-btn{
+  position:absolute;top:0px;right:-16px;
+  width:10px;height:14px;border:1px solid #888;border-radius:50%;
+  background:rgba(0,0,0,0);opacity:.3;cursor:pointer;
+  transition:background .2s,opacity .2s;
+}
+.bookmark-btn.active{background:#e11;opacity:1;}
+
+#nav{
+  position:fixed;right:20px;top:50%;transform:translateY(-50%);
+  display:flex;flex-direction:column;gap:6px;z-index:10;
+}
+#nav button{
+  width:26px;height:26px;border:none;border-radius:4px;background:#eee;
+  font-size:14px;cursor:pointer;opacity:.4;transition:opacity .2s;
+}
+#nav button.enabled{opacity:1;}
+#nav button:disabled{opacity:.2;cursor:default;}
+#nav #playback, #nav #stopBtn{opacity:1;}
+
+#input-bar{
+  display:flex;gap:6px;padding:6px;border-top:1px solid #ddd;
+}
+#input{flex:1;padding:6px 8px;font-size:var(--input-font);resize:none;font-family:Arial,Helvetica,sans-serif}
+#send,#clear,#check,#plus,#minus,#attach{padding:6px 10px;cursor:pointer;}
+.msg img.emoji{width:1em;height:1em;vertical-align:-0.15em;}
+#micBtn{padding:6px 10px;cursor:pointer;opacity:.4;transition:opacity .2s;}
+#micBtn.active{opacity:1;}
+.code-box        {border:1px solid #f6ffe8;border-radius:6px;background:#fffef1;margin:4px 0;color:#000;}
+.code-box * {font-family:Arial,Helvetica,sans-serif}
+.code-header     {position:relative;display:flex;justify-content:space-between;align-items:center;
+                  padding:2px 6px;font-size:0.65rem;background:#f6ffe8;border-bottom:1px solid #dfdfdf;}
+.code-header span{font-weight:600;color:#034c7c;}
+.code-header button{background:none;border:none;cursor:pointer;font-size:0.65rem;color:#034c7c;}
+.code-box pre    {margin:0;padding:6px;overflow-x:auto;background:transparent;}
+.file-icon{font-size:1.3em;margin:0 3px;cursor:pointer;}
+.copy-hint {
+  position: absolute;
+  right: 45px;
+  top: 2px;
+  background: #d0ffe1;
+  color: #175c32;
+  font-size: 0.65rem;
+  padding: 1px 6px;
+  border-radius: 8px;
+  border: 1px solid #93deb3;
+  z-index: 10;
+  animation: fadeinout 1.2s;
+}
+.char-count {
+  display: relative; /* Отображает элемент как блочный, выстраивая его вертикально */
+  position: absolute;
+  text-align: left;
+  top: 22px;
+  right: -21px;
+  width: 25px;
+  overflow: visible;
+  transform: rotate(90deg);
+  font-size: 1.0em;
+  color: #888;
+}
+.md-bullet {
+  display: block;
+  position: relative;
+  padding-left: 0.6em;
+  margin-left: 0.3em;
+  margin-bottom: 3px;
+}
+.md-bullet:before {
+  content: "•";
+  position: absolute;
+  left: 0;
+  top: 0;
+  color: #666;
+  font-size: 1.1em;
+  font-weight: bold;
+}
+.inline-code {
+  position: relative;
+  display: inline-block;
+  background: #f6ffe8;
+  color: #0a390a;
+  border: 1px solid #e0e0d0;
+  border-radius: 4px;
+  padding: 1px 5px;
+  font-family: monospace;
+  font-size: 0.96em;
+  margin: 0 2px;
+  vertical-align: baseline;
+  font-family:Arial,Helvetica,sans-serif
+}
+@keyframes fadeinout {
+  0% {opacity:0;}
+  12%{opacity:1;}
+  88%{opacity:1;}
+ 100%{opacity:0;}
+}
+</style>
+</head>
+
+<body>
+  <div id="chat"></div>
+  <div id="file-bar"></div>
+  <!-- навигация по закладкам + TTS -->
+  <div id="nav">
+    <button id="navUp"   disabled>▲</button>
+    <button id="playback">🔊</button>
+    <button id="stopBtn" style="display:none;">■</button>
+    <button id="navDown" disabled>▼</button>
+  </div>
+
+  <div id="input-bar">
+    <button id="minus">－</button>
+    <button id="plus">＋</button>
+    <button id="attach">F</button>
+    <!-- <button id="micBtn" title="Голос">🎤</button> -->
+    <input type="file" id="fileSel" multiple hidden accept="image/*,
+          .js,.ts,.tsx,.jsx,.json,
+          .html,.css,.scss,
+          .py,.php,.rb,.go,.rs,
+          .c,.cpp,.h,.hpp,
+          .cs,.java,.kt,.swift,
+          .sh,.bat">
+    <textarea id="input" rows="2" placeholder="Type a message…"></textarea>
+    <button id="send">Send</button>
+    <button id="clear">Clr</button>
+    <button id="check" style="display:none">Check</button>
+  </div>
+
+<script src="renderer.js"></script>
+</body>
+</html>

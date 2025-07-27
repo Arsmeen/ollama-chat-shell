@@ -1,0 +1,49 @@
+{
+  "name": "ollama-electron-chat",
+  "productName": "SoulChat",
+  "version": "0.1.4",
+  "description": "Tiny Electron chat that talks to Ollama",
+  "author": "ArsMar <master@77.md>",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "make": "electron-forge make"
+  },
+  "dependencies": {
+    "adm-zip": "^0.5.10",
+    "electron-store": "^10.0.0",
+    "iconv-lite": "^0.6.3"
+  },
+  "devDependencies": {
+    "@electron-forge/cli": "^6.4.2",
+    "@electron-forge/maker-squirrel": "^7.8.1",
+    "@electron-forge/maker-zip": "^7.8.1",
+    "electron": "^30.5.1"
+  },
+  "build": {
+    "packagerConfig": {
+      "icon": "assets/icon.ico"
+    }
+  },
+  "config": {
+    "forge": {
+      "packagerConfig": {
+        "icon": "assets/icon.ico"
+      },
+      "makers": [
+        {
+          "name": "@electron-forge/maker-squirrel",
+          "config": {
+            "setupIcon": "assets/icon.ico"
+          }
+        },
+        {
+          "name": "@electron-forge/maker-zip",
+          "platforms": [
+            "win32"
+          ]
+        }
+      ]
+    }
+  }
+}
