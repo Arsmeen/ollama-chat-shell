@@ -22,18 +22,7 @@ The project was originally created for the *gemma3:12b* model, but you can use a
 
 *npm install*
 
-### 3. Add your *config.json*
-
-Create a *config.json* file in the project root.  
-Example:
-
-*
-{
-  "ollama_url": "http://localhost:11434",
-  "model": "gemma3:12b",
-  "other_setting": "value"
-}
-*
+### 3. Change your *config.json*
 
 In this repo the config does NOT contain API keys, but if you fork or extend the project with your own keys or tokens, be careful not to commit them to public repos!
 
