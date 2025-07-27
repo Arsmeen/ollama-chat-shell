@@ -36,7 +36,7 @@ In this repo the config does NOT contain API keys, but if you fork or extend the
 
 ### 5. Build an exe (Windows)
 
-*npm run build*
+*npm run make*
 
 After build is complete, look for the .exe installer and/or the standalone archive in the *dist/* or *build/* folder.
 
