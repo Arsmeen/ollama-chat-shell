@@ -6,8 +6,9 @@
   "author": "ArsMar <master@77.md>",
   "main": "main.js",
   "scripts": {
+    "prebuild": "node scripts/pre-make.js",
     "start": "electron .",
-    "make": "electron-forge make"
+    "make": "npm run prebuild && electron-forge make && node scripts/after-make.js"
   },
   "dependencies": {
     "adm-zip": "^0.5.10",
