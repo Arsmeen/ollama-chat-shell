@@ -804,7 +804,7 @@ checkB.onclick=()=>{ add('⏳ Checking Ollama…'); window.api.check(); };
 window.api.onError(e=>add('⚠️ '+e));
 // Показываем "not running, waiting..." и начинаем проверку
 window.api.onOff(() => {
-  console.log('offline');
+  //console.log('offline');
   add('⚠️ Ollama not running, waiting...');
   if (!ollamaWaitTimer) {
     ollamaWaitTimer = setInterval(() => {
