@@ -602,7 +602,6 @@ function enhanceCodeBlocks(root){
 function add(txt='',cls='system'){
   const d=document.createElement('div');
   d.className='msg '+cls;
-  // if(window.twemoji) window.twemoji.parse(d,TW);
   if(cls==='assistant') {
     d.innerHTML=txt;
     enhanceCodeBlocks(d);
@@ -610,10 +609,10 @@ function add(txt='',cls='system'){
   } else if(cls==='user') {
     d.textContent=txt
     hideUserCode(d);
-    renderEmoji(d);
   } else {
     d.innerHTML=txt;
   }
+  renderEmoji(d);
   chat.appendChild(d);
   chat.scrollTop=chat.scrollHeight;
   trim();
@@ -680,7 +679,7 @@ window.api.onHist(arr => {
   }
   arr.forEach(e=>{ add(e.user,'user'); add(e.ai,'assistant'); });
   setTimeout(()=>{
-    if(window.twemoji) window.twemoji.parse(chat,TW);
+    renderEmoji(chat);
     trim();
     chat.scrollTop = chat.scrollHeight;
   },50);
@@ -750,10 +749,10 @@ window.api.onChunk(t => {
   }
 });
 window.api.onDone(() => {
-  renderEmoji(streamDiv);
   chat.scrollTop = chat.scrollHeight;
   enhanceCodeBlocks(streamDiv);
   attachBookmark(streamDiv);
+  renderEmoji(streamDiv);
   updateNavState();
 });
 
