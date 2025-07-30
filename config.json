@@ -4,7 +4,7 @@
   "image_pre_message": "*There is a picture attached to the last message, be sure to look at it*",
   "image_include_messages": 0,
   "temperature": 0.7,
-  "system_prompt": "You are a friendly conversationalist, ready to support any topic, and speak Russian.",
+  "system_prompt": "You are a friendly conversationalist, ready to support any topic.",
   "start_prompt": "Hello! How are you?",
   "history_max_file_kb": 1500,
   "history_max_chars": 300000,
