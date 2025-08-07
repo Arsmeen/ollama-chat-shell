@@ -13,6 +13,8 @@ Since gemma3:12b only sees images during initialization, and cannot do so in the
 
 Remember, on first run, if no model downloaded with ollama, this chat will wait until model downloads, so this time is depends of model and your internet speed.
 
+If the model did not respond for a long time and the error "⚠️ TypeError: fetch failed" appeared in the chat - the model is too "heavy" for your hardware, look for a smaller version or another one.
+
 ## Quick Features
 
 - Clean chat interface for text conversations with Ollama models  

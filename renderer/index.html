@@ -134,6 +134,38 @@ body * {font-family:Arial,Helvetica,sans-serif,"Segoe UI Emoji","Apple Color Emo
   vertical-align: baseline;
   font-family:Arial,Helvetica,sans-serif
 }
+#reasonSel{
+  padding:4px 2px;font-size:0.65rem;border:1px solid #ccc;border-radius:4px;
+  background:#fff;cursor:pointer;width:42px;text-align:center;
+}
+.typing::after{
+  content:"";display:inline-block;width:1ch;text-align:left;
+  animation:dots 1s steps(3,end) infinite;
+}
+.thought-box        {border:1px solid #e0e0e0;border-radius:6px;background:#fafafa;margin:4px 0;}
+.thought-header     {display:flex;justify-content:space-between;align-items:center;
+                     padding:2px 6px;font-size:0.65rem;background:#eee;}
+.thought-box.collapsed pre{display:none;}
+.toggle-thoughts    {border:none;background:none;font-size:0.8rem;cursor:pointer;}
+.thought-box pre,
+.thought-box .thought-body {
+  padding: 6px 10px;
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+  background: transparent;
+  font-size: 0.9em;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+}
+.thought-box.collapsed .toggle-thoughts { transform: rotate(-90deg); transition: transform 0.1s; }
+@keyframes dots{
+  0%{content:"";}
+  33%{content:"·";}
+  66%{content:"··";}
+  100%{content:"···";}
+}
 @keyframes fadeinout {
   0% {opacity:0;}
   12%{opacity:1;}
@@ -158,6 +190,11 @@ body * {font-family:Arial,Helvetica,sans-serif,"Segoe UI Emoji","Apple Color Emo
     <button id="minus">－</button>
     <button id="plus">＋</button>
     <button id="attach">F</button>
+    <select id="reasonSel" title="Thought level">
+      <option value="0">0</option>
+      <option value="1" selected>1</option>
+      <option value="2">2</option>
+    </select>
     <!-- <button id="micBtn" title="Голос">🎤</button> -->
     <input type="file" id="fileSel" multiple hidden accept="image/*,
           .js,.ts,.tsx,.jsx,.json,

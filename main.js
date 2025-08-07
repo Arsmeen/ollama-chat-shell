@@ -195,7 +195,7 @@ app.whenReady().then(async () => {
 /* ---------- IPC ---------- */
 ipcMain.handle('ollama:check', prepare);
 
-ipcMain.handle('chat:send', async (_e, { text, images }) => {
+ipcMain.handle('chat:send', async (_e, { text, images, reasoning = 1 }) => {
   const useGen = cfg.generate_with_images && images?.length;
   const mesInclIfImg = cfg.image_include_messages ?? 0;
   const allCtx = history.loadContext(cfg); // история сообщений до 3000 символов
@@ -228,8 +228,8 @@ ipcMain.handle('chat:send', async (_e, { text, images }) => {
   //console.log("Promt: ",prompt);
 
   const stream = useGen
-      ? generateStream(cfg.model, prompt, temp, images)
-      : askStream       (cfg.model, prompt, temp, images);
+      ? generateStream(cfg.model, prompt, temp, images, reasoning)
+      : askStream       (cfg.model, prompt, temp, images, reasoning);
 
   let ans = '';
   isGenerating = true;

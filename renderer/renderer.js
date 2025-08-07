@@ -520,53 +520,80 @@ function simpleMarkdownToHtml(md) {
 }
 
 function enhanceCodeBlocks(root){
-  const html = root.innerHTML;
-  // Гибкий паттерн — ловит много блоков, конец: ``` + только пробелы/конец строки/файла
-  const re = /```([a-zA-Z0-9#+.\-]*)\n([\s\S]*?)```[\s]*((?=\n)|$)/gm;
+  let html = root.innerHTML;
+  html = html
+    .replace(/\\u003c/g, '<')
+    .replace(/\\u003e/g, '>')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>');
+    
+  const patterns = [
+    { // code block
+      //re: /```([a-zA-Z0-9#+.\-]*)\n([\s\S]*?)```[\s]*((?=\n)|$)/gm,
+      re: /```(?!thoughts\b)([a-zA-Z0-9#+.\-]*)\n([\s\S]*?)(?!endthouts\b)```[\s]*((?=\n)|$)/gm,
+      getBlock: (m) => ({
+        type: 'code',
+        lang: (m[1] || 'code').toLowerCase(),
+        text: decodeHTMLEntities(m[2])
+      })
+    },
+    { // thoughts block (```thoughts ... endthouts```) for gpt-oss
+      re: /```thoughts\s*([\s\S]*?)\s*endthouts```/gi,
+      getBlock: (m) => ({
+        type: 'thou',
+        text: decodeHTMLEntities(m[1])
+      })
+    },
+    { // <think>...</think> for deepseek r1
+      re: /<think>\s*([\s\S]*?)\s*<\/think>/gi,
+      getBlock: (m) => ({
+        type: 'thou',
+        text: decodeHTMLEntities(m[1])
+      })
+    }
+  ];
+
+  // Собираем все совпадения с позиции и типом, чтобы отсортировать по порядку
+  let matches = [];
+  patterns.forEach(({re, getBlock}) => {
+    let m;
+    while (m = re.exec(html)) {
+      matches.push({
+        index: m.index,
+        lastIndex: re.lastIndex,
+        block: getBlock(m)
+      });
+    }
+  });
+  matches.sort((a, b) => a.index - b.index);
 
   let last = 0;
   const parts = [];
-  let m;
-
-  while((m = re.exec(html))){
-    if(m.index > last){
-      parts.push({type:'html', content: html.slice(last, m.index)});
+  for (const match of matches) {
+    if (match.index > last) {
+      parts.push({type: 'html', content: html.slice(last, match.index)});
     }
-    parts.push({
-      type : 'code',
-      lang : (m[1] || 'code').toLowerCase(),
-      text : decodeHTMLEntities(m[2])
-    });
-    last = re.lastIndex;
+    parts.push(match.block);
+    last = match.lastIndex;
   }
-  if(last < html.length) parts.push({type:'html', content: html.slice(last)});
+  if (last < html.length) parts.push({type:'html', content: html.slice(last)});
 
   // Обработка и сборка
   root.innerHTML = '';
   for(const p of parts){
     if(p.type === 'html'){
-      // markdown только для не-кода
+      // текст просто пропускаем
       const tmp = document.createElement('div');
       tmp.innerHTML = p.content;
-      //tmp.innerHTML = simpleMarkdownToHtml(p.content);
       tmp.childNodes.forEach(n=>root.appendChild(n));
-    }else{
+    } else if(p.type === 'code'){
+      // code оборачиваем в рамку
       const wrapper = document.createElement('main');
       wrapper.className = 'code-box';
 
       const header = document.createElement('div');
       header.className = 'code-header';
       header.innerHTML = `<span>${p.lang}</span><button>copy</button>`;
-
-      // const btn = header.querySelector('button');
-      // btn.onclick = ()=> {
-      //   navigator.clipboard.writeText(p.text);
-      //   let hint = document.createElement('span');
-      //   hint.textContent  = 'stored to clipboard';
-      //   hint.className = 'copy-hint';
-      //   btn.parentElement.appendChild(hint);
-      //   setTimeout(()=>hint.remove(), 1300);
-      // };
 
       const pre  = document.createElement('pre');
       const code = document.createElement('code');
@@ -576,6 +603,21 @@ function enhanceCodeBlocks(root){
 
       wrapper.append(header, pre);
       root.appendChild(wrapper);
+    } else if(p.type === 'thou') {
+      // мысли оборачиваем в свою рамку
+      const box   = document.createElement('main');
+      box.className = 'thought-box collapsed';   // по умолчанию свёрнута
+
+      const head  = document.createElement('div');
+      head.className = 'thought-header';
+      head.innerHTML = `<span>Thoughts</span>
+                        <button class="toggle-thoughts">▼</button>`;
+
+      const pre   = document.createElement('pre');
+      pre.textContent = p.text;  // или decodeHTMLEntities(p.text) если нужно
+
+      box.append(head, pre);
+      root.appendChild(box);
     }
   }
   root.innerHTML = simpleMarkdownToHtml(root.innerHTML);
@@ -596,6 +638,16 @@ function enhanceCodeBlocks(root){
     });
     root._copyDelegated = true;
   }
+  // делегируем раскрытие/сворачивание для всех .toggle-thoughts
+  if(!root._thouToggle){
+    root.addEventListener('click', e=>{
+      const btn = e.target.closest('.toggle-thoughts');
+      if(btn){
+        btn.closest('.thought-box').classList.toggle('collapsed');
+      }
+    });
+    root._thouToggle = true;
+  }
 }
 
 /* helpers */
@@ -604,8 +656,13 @@ function add(txt='',cls='system'){
   d.className='msg '+cls;
   if(cls==='assistant') {
     d.innerHTML=txt;
-    enhanceCodeBlocks(d);
-    attachBookmark(d); // вызов attachBookmark
+    if(txt == '') {
+      if(!d.classList.contains('typing')) d.classList.add('typing');
+    } else {
+      // на момент добавления сообщений из истории, нужно обработать текст который не пустой
+      enhanceCodeBlocks(d);
+      attachBookmark(d); // вызов attachBookmark
+    }
   } else if(cls==='user') {
     d.textContent=txt
     hideUserCode(d);
@@ -708,6 +765,8 @@ function send(){
   let text = input.value.trim();
   if(!text && !files.length) return;
 
+  const reasoning = +document.getElementById('reasonSel').value;
+
   const chatImageEmoji = '🖼️ ';
   if (files.length) {
     text = `${chatImageEmoji}${text}`;
@@ -721,7 +780,7 @@ function send(){
   input.value=''; input.scrollTop=0; input.setSelectionRange(0,0);  // ← курсор в начало
 
   streamDiv=add('','assistant');
-  window.api.send({ text, images: files.map(f=>f.data) });
+  window.api.send({ text, images: files.map(f=>f.data), reasoning });
   files=[]; codeFiles=[]; refreshBar();
   if (recognizing) stopRec();
 }
@@ -753,6 +812,7 @@ window.api.onDone(() => {
   enhanceCodeBlocks(streamDiv);
   attachBookmark(streamDiv);
   renderEmoji(streamDiv);
+  if(streamDiv.classList.contains('typing')) streamDiv.classList.remove('typing');
   updateNavState();
 });
 
