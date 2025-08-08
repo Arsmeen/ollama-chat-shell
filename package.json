@@ -1,7 +1,7 @@
 {
   "name": "ollama-electron-chat",
   "productName": "SoulChat",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "description": "Tiny Electron chat that talks to Ollama",
   "author": "ArsMar <master@77.md>",
   "main": "main.js",
